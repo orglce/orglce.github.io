@@ -1,36 +1,38 @@
-// on load
-document.addEventListener("DOMContentLoaded", function () {
-  console.log("Hello World");
+const urlParams = new URLSearchParams(window.location.search);
+id = urlParams.get("id");
 
+const fetchedData = async () => {
   const url =
     "https://cdn.contentful.com/spaces/b835i0wfa41a/environments/master/entries?access_token=oqH2zHeDTjBW6ZAObyiw5utOy8XXXsyv5TVHL1mojtI";
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Network response was not ok " + response.statusText);
+  }
+  const data = await response.json();
+  return data;
+};
 
-  title = document.getElementById("title");
-  // set css display to none
-  title.style.display = "none";
+fetchedPromise = fetchedData();
 
-  // Use fetch to make a GET request to the endpoint
-  fetch(url)
-    .then((response) => {
-      // Check if the response status is OK (status code 200-299)
-      if (!response.ok) {
-        throw new Error("Network response was not ok " + response.statusText);
+document.addEventListener("DOMContentLoaded", async () => {
+  const buttonAllCats = document.getElementById("buttonAllCats");
+  buttonAllCats.addEventListener("click", () => {
+    location.href = "index.html";
+  });
+  divCats = document.getElementById("divCats");
+  fetchedPromise.then((data) => {
+    if (id) {
+      currentCat = data.items.find((entry) => entry.sys.id === id);
+      divCats.innerHTML = currentCat.fields.ime;
+    } else {
+      for (let entry of data.items) {
+        newDiv = document.createElement("button");
+        newDiv.innerText = entry.fields.ime;
+        divCats.appendChild(newDiv);
+        newDiv.addEventListener("click", () => {
+          location.href = "index.html?id=" + entry.sys.id;
+        });
       }
-      // Parse the response JSON data
-      return response.json();
-    })
-    .then((data) => {
-      // Handle the JSON data
-      ime = data.items[0].fields.ime;
-      // seto to element with id 'title'
-      document.getElementById("title").innerText = ime;
-      // set css display to block
-      title.style.display = "block";
-    })
-    .catch((error) => {
-      // Handle any errors that occurred during the fetch
-      console.error("There was a problem with the fetch operation:", error);
-    });
-  // your code here
-  console.log("DOM loaded");
+    }
+  });
 });
